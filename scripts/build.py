@@ -214,6 +214,20 @@ def blend(fg, alpha, bg):
     return "#" + "".join(f"{round(x * alpha + y * (1 - alpha)):02x}" for x, y in zip(a, b))
 
 
+
+def visible_invisible(fg, selection, editor_bg):
+    """Compute editor.invisible so whitespace dots stay clearly legible over selected text."""
+    def _mix(a, t, b):
+        ca = [int(a[i : i + 2], 16) for i in (1, 3, 5)]
+        cb = [int(b[i : i + 2], 16) for i in (1, 3, 5)]
+        return "#" + "".join(f"{round(x * t + y * (1 - t)):02x}" for x, y in zip(ca, cb))
+    sel = selection or editor_bg
+    if len(sel) == 9:
+        sel = _mix(sel[:7], int(sel[7:9], 16) / 255, editor_bg[:7])
+    target = editor_bg[:7] if abs(int(sel[1:3], 16) - int(fg[1:3], 16)) < 60 else fg[:7]
+    return _mix(target, 0.46, sel[:7])
+
+
 def build_style(theme, appearance, unbordered=False):
     c = {k: norm_color(v) for k, v in theme.get("colors", {}).items()}
     g = lambda *keys: next((c[k] for k in keys if c.get(k)), None)
@@ -383,6 +397,7 @@ def build_style(theme, appearance, unbordered=False):
         if c.get(f"editorBracketHighlight.foreground{i}")
     ] or [p for p in player_colors[:6] if p]
 
+    style["editor.invisible"] = visible_invisible(fg, selection, editor_bg)
     style["syntax"] = build_syntax(theme, c)
     return {k: v for k, v in style.items() if v is not None}
 
