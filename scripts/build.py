@@ -207,6 +207,13 @@ def build_syntax(theme, c):
     return dict(sorted(syntax.items()))
 
 
+def blend(fg, alpha, bg):
+    """Straight sRGB mix: alpha of fg over bg."""
+    a = [int(fg[i : i + 2], 16) for i in (1, 3, 5)]
+    b = [int(bg[i : i + 2], 16) for i in (1, 3, 5)]
+    return "#" + "".join(f"{round(x * alpha + y * (1 - alpha)):02x}" for x, y in zip(a, b))
+
+
 def build_style(theme, appearance, unbordered=False):
     c = {k: norm_color(v) for k, v in theme.get("colors", {}).items()}
     g = lambda *keys: next((c[k] for k in keys if c.get(k)), None)
@@ -225,8 +232,9 @@ def build_style(theme, appearance, unbordered=False):
     ui_text = g("foreground", "sideBar.foreground", "editor.foreground")
     muted_text = g("descriptionForeground", "tab.inactiveForeground", "editorLineNumber.foreground")
     disabled_text = g("disabledForeground", "editorLineNumber.foreground")
-    hover = g("list.hoverBackground", "editor.lineHighlightBackground")
-    selected = g("list.activeSelectionBackground", "list.inactiveSelectionBackground", "editor.selectionBackground")
+    # Subtle, well-contrasted list hover & selection (VS Code's 40%-alpha gray #6e768166 reads too bright in Zed).
+    hover = blend(fg[:7], 0.06 if appearance == "dark" else 0.05, shell_bg[:7])
+    selected = blend(fg[:7], 0.11 if appearance == "dark" else 0.09, shell_bg[:7])
     cursor = g("editorCursor.foreground") or fg
     selection = g("editor.selectionBackground") or with_alpha(accent, "3d")
 
@@ -235,8 +243,8 @@ def build_style(theme, appearance, unbordered=False):
         "background": shell_bg,
         "border": border,
         "border.variant": border_variant,
-        "border.focused": accent,
-        "border.selected": accent,
+        "border.focused": TRANSPARENT if unbordered else border,
+        "border.selected": TRANSPARENT,
         "border.transparent": TRANSPARENT,
         "border.disabled": border,
         "elevated_surface.background": elevated_bg,
