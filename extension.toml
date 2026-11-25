@@ -1,0 +1,7 @@
+id = "github-custom-theme"
+name = "GitHub Custom Theme"
+version = "1.0.0"
+schema_version = 1
+authors = ["Dallas Gere"]
+description = "All official Primer GitHub VS Code themes ported to Zed in a single file, including unbordered variants for each."
+repository = "https://github.com/dallasgere/github-custom-theme"
