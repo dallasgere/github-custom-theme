@@ -346,13 +346,14 @@ def build_style(theme, appearance, unbordered=False):
         if not val:
             continue
         style[name] = val
-        style[f"{name}.background"] = with_alpha(val, "1a")
+        style[f"{name}.background"] = with_alpha(val, "2e" if name in ("created", "deleted", "modified") else "1f")
         style[f"{name}.border"] = with_alpha(val, "66")
     style["hint.background"] = g("editorInlayHint.background") or elevated_bg
 
-    vc_add = g("editorGutter.addedBackground", "gitDecoration.addedResourceForeground")
-    vc_mod = g("editorGutter.modifiedBackground", "gitDecoration.modifiedResourceForeground")
-    vc_del = g("editorGutter.deletedBackground", "gitDecoration.deletedResourceForeground")
+    # Use full opaque gitDecoration colors (not 40%-alpha editorGutter.*) so +N -M counts and diffs stay crisp.
+    vc_add = (g("gitDecoration.addedResourceForeground", "editorGutter.addedBackground") or "")[:7] or None
+    vc_mod = (g("gitDecoration.modifiedResourceForeground", "editorGutter.modifiedBackground") or "")[:7] or None
+    vc_del = (g("gitDecoration.deletedResourceForeground", "editorGutter.deletedBackground") or "")[:7] or None
     style["version_control.added"] = vc_add
     style["version_control.modified"] = vc_mod
     style["version_control.deleted"] = vc_del
@@ -360,9 +361,9 @@ def build_style(theme, appearance, unbordered=False):
     style["version_control.conflict"] = statuses["conflict"]
     style["version_control.ignored"] = statuses["ignored"]
     if vc_add:
-        style["version_control.word_added"] = with_alpha(vc_add, "3d")
+        style["version_control.word_added"] = with_alpha(vc_add, "5c")
     if vc_del:
-        style["version_control.word_deleted"] = with_alpha(vc_del, "3d")
+        style["version_control.word_deleted"] = with_alpha(vc_del, "5c")
 
     player_colors = [accent] + [
         g(f"terminal.ansi{n}") for n in ("Blue", "Magenta", "Yellow", "Green", "Cyan", "Red")
